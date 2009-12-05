@@ -1,0 +1,3 @@
+-Figure out a DRY way to show forms in the view
+-Add other api calls for creating
+-Add other api calls for get, update, delete and list
