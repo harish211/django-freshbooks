@@ -242,3 +242,54 @@ class Expenses(api.BaseObject):
             api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
             response = api.call_api("expenses.create", {None:self})
 
+
+class TimeEntry(api.BaseObject):
+    object_name = 'time_entry'
+    
+    project_id = models.IntegerField(blank=True)
+    task_id = models.IntegerField(blank=True)
+    hours = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+    date = models.DateField()
+    notes = models.CharField(max_length=255,blank=True)
+
+    def save(self):
+        if not self.id:
+            api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+            response = api.call_api("time_entry.create", {None:self})
+
+class Project(api.BaseObject):
+    object_name = 'project'
+    
+    name = models.CharField(max_length=255)
+    bill_method = models.CharField(max_length=255)
+    client_id = models.IntegerField()
+    rate = models.DecimalField(max_digits=10,decimal_places=2)
+    description = models.CharField(max_length=255,blank=True)
+ 
+    def save(self):
+        if not self.id:
+            api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+            response = api.call_api("project.create", {None:self})
+
+class Staff(api.BaseObject):
+    object_name = 'staff'
+    
+    username = models.CharField(max_length=50, blank=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField()
+    business_phone = models.CharField(max_length=20,blank=True)
+    mobile_phone = models.CharField(max_length=20,blank=True)
+    rate = models.DecimalField(max_digits=10,decimal_places=2)
+    notes = models.CharField(max_length=255,blank=True,)
+    street1 = models.CharField(max_length=255,blank=True)
+    street2 = models.CharField(max_length=255,blank=True)
+    city = models.CharField(max_length=255,blank=True)
+    state = models.CharField(max_length=255,blank=True)
+    country = models.CharField(max_length=255,blank=True)
+    code = models.CharField(max_length=255,blank=True)
+
+    def save(self):
+        if not self.id:
+            api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+            response = api.call_api("staff.create", {None:self})
