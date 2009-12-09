@@ -9,7 +9,7 @@ STATUS_CHOICES = (
                  ('paid','paid'),
                  ('draft','draft'),
                  )
-STATUS_CHOICES = (
+EXP_CHOICES = (
                  (0,'not assigned'),
                  (1,'unbilled'),
                  (2,'invoiced'),
@@ -57,6 +57,9 @@ class Category(api.BaseObject):
         if not self.id:
             api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
             response = api.call_api("category.create", {None:self}) 
+    
+    class Meta:
+        verbose_name_plural = 'Categories'
             
 class Task(api.BaseObject):
     object_name = 'task'
@@ -115,6 +118,10 @@ class Recurring(api.BaseObject):
         if not self.id:
             api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
             response = api.call_api("invoice.create", {None:self})
+        
+    class Meta:
+        verbose_name_plural = 'Recurring'
+    
         
 class Invoice(api.BaseObject):
     object_name = 'invoice'
@@ -219,7 +226,7 @@ class Item(api.BaseObject):
             response = api.call_api("item.create", {None:self})
 
 
-class Expenses(api.BaseObject):
+class Expense(api.BaseObject):
     object_name = 'expenses'
     
     staff_id = models.IntegerField()
@@ -257,6 +264,9 @@ class TimeEntry(api.BaseObject):
             api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
             response = api.call_api("time_entry.create", {None:self})
 
+    class Meta:
+        verbose_name_plural = 'Time Entries'
+        
 class Project(api.BaseObject):
     object_name = 'project'
     
