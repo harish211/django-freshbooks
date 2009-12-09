@@ -101,6 +101,28 @@ class InvalidParameterError(Exception):
     pass
 
 
+def post(body):
+    '''
+    This function actually communicates with the FreshBooks API
+    '''
+
+    # setup HTTP basic authentication
+    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    url = ""
+    if account_url.find('//') == -1:
+        url = "https://"
+    url += account_url + SERVICE_URL
+    password_mgr.add_password(None, url, auth_token, '')
+    handler = urllib2.HTTPBasicAuthHandler(password_mgr)
+    opener = urllib2.build_opener(handler)
+    urllib2.install_opener(opener)
+
+    # make the request and return the response body
+    request = urllib2.Request(url, body, request_headers)
+    response = urllib2.urlopen(request)
+    response_content = response.read()
+    return response_content
+
 def call_api(method, elems = []):
     '''
     This function calls into the FreshBooks API and returns the Response
@@ -112,7 +134,7 @@ def call_api(method, elems = []):
     request = doc.createElement('request')
     request.setAttribute('method', method)
     for key, value in elems.items():
-        if isinstance(value, FreshbookObject):
+        if isinstance(value, BaseObject):
             request.appendChild(value.to_xml(doc))
         else:
             e = doc.createElement(key)
@@ -141,28 +163,6 @@ def call_api(method, elems = []):
             raise Exception(msg)
 
     return last_response
-
-def post(body):
-    '''
-    This function actually communicates with the FreshBooks API
-    '''
-
-    # setup HTTP basic authentication
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-    url = ""
-    if account_url.find('//') == -1:
-        url = "https://"
-    url += account_url + SERVICE_URL
-    password_mgr.add_password(None, url, auth_token, '')
-    handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-    opener = urllib2.build_opener(handler)
-    urllib2.install_opener(opener)
-
-    # make the request and return the response body
-    request = urllib2.Request(url, body, request_headers)
-    response = urllib2.urlopen(request)
-    response_content = response.read()
-    return response_content
 
 class Response(object):
     '''
@@ -215,7 +215,7 @@ class Response(object):
         else:
             return None
 
-class FreshbookObject(models.Model):
+class BaseObject(models.Model):
     '''
     This serves as the base object for all FreshBooks objects.
     '''
@@ -233,6 +233,7 @@ class FreshbookObject(models.Model):
             datetime.datetime.strptime(val,
             '%Y-%m-%d %H:%M:%S') if (val != '0000-00-00 00:00:00' and len(val) == 19) else datetime.datetime.strptime(val, '%Y-%m-%d') if len(val) == 10 else val
     }
+
 
     @classmethod
     def _new_from_xml(cls, element):

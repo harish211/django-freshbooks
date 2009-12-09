@@ -1,6 +1,6 @@
 from django.db import models
-from freshbooks.django_freshbooks.api import * 
-from freshbooks.django_freshbooks.settings import *
+from django_freshbooks import api
+from django_freshbooks.settings import *
 from datetime import date
 
 STATUS_CHOICE = (
@@ -10,7 +10,7 @@ STATUS_CHOICE = (
                  ('draft','draft'),
                  )
 
-class Line(FreshbookObject):
+class Line(api.BaseObject):
     name = models.CharField(max_length=255,blank=True)
     description = models.CharField(max_length=255,blank=True)
     unit_cost = models.DecimalField(max_digits=2,decimal_places=2,blank=True)
@@ -33,7 +33,7 @@ class Line(FreshbookObject):
             raise models.ValidationError(msg)
         
         
-class Invoice(FreshbookObject):
+class Invoice(api.BaseObject):
     client_id = models.IntegerField()
     number = models.CharField(max_length=255,blank=True)
     status = models.CharField(max_length=50,choices=STATUS_CHOICE,default='draft')
@@ -67,7 +67,9 @@ class Invoice(FreshbookObject):
         
     
         
-class Client(FreshbookObject):
+class Client(api.BaseObject):
+    TYPE_MAPPINGS = {'client_id' : 'int'}
+    object_name = 'client'
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     organization = models.CharField(max_length=100)
@@ -93,11 +95,11 @@ class Client(FreshbookObject):
     s_code = models.CharField(max_length=255,blank=True)
 
     def save(self):
-        setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
-        response = call_api("client.create", {None:self})
+        api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+        response = api.call_api("client.create", {None:self})
 
 
-class Item(FreshbookObject):
+class Item(api.BaseObject):
     '''
     The Item object
     '''
