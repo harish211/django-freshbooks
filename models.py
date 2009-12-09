@@ -9,6 +9,18 @@ STATUS_CHOICES = (
                  ('paid','paid'),
                  ('draft','draft'),
                  )
+STATUS_CHOICES = (
+                 (0,'not assigned'),
+                 (1,'unbilled'),
+                 (2,'invoiced'),
+                 )
+EST_STATUS_CHOICES = (
+                 ('sent','sent'),
+                 ('viewed','viewed'),
+                 ('replied','replied'),
+                 ('accepted','accepted'),
+                 ('draft','draft'),
+                 )
 FREQ_CHOICES = (
                  ('weekly','weekly'),
                  ('2 weeks','2 weeks'),
@@ -21,11 +33,7 @@ FREQ_CHOICES = (
                  )
 
 class Line(api.BaseObject):
-    TYPE_MAPPINGS = {'invoice_id' : 'int', 'client_id' : 'int',
-        'po_number' : 'int', 'discount' : 'float', 'amount' : 'float',
-        'date' : 'datetime', 'amount_outstanding' : 'float', 
-        'paid' : 'float'}
-    
+    object_name = 'line'
     name = models.CharField(max_length=255,blank=True)
     description = models.CharField(max_length=255,blank=True)
     unit_cost = models.DecimalField(max_digits=2,decimal_places=2,blank=True)
@@ -52,7 +60,6 @@ class Category(api.BaseObject):
             
 class Task(api.BaseObject):
     object_name = 'task'
-    TYPE_MAPPINGS = {'rate': 'float', }
     
     name = models.CharField(max_length=255)
     billable = models.BooleanField()
@@ -67,7 +74,6 @@ class Task(api.BaseObject):
             
 class Payment(api.BaseObject):
     object_name = 'payment'
-    TYPE_MAPPINGS = {'client_id': 'int', 'invoice_id': 'int'}
     
     client_id = models.IntegerField()
     invoice_id = models.IntegerField()
@@ -83,10 +89,7 @@ class Payment(api.BaseObject):
         
 class Recurring(api.BaseObject):
     object_name = 'recurring'
-    TYPE_MAPPINGS = {'recurring_id' : 'int', 'client_id' : 'int',
-        'po_number' : 'int', 'discount' : 'float', 'amount' : 'float',
-        'date' : 'datetime', 'amount_outstanding' : 'float', 
-        'paid' : 'float'}
+    
     client_id = models.IntegerField()
     date = models.DateField(default=date.today(),blank=True)
     po_number = models.CharField(max_length=255,blank=True)
@@ -115,10 +118,7 @@ class Recurring(api.BaseObject):
         
 class Invoice(api.BaseObject):
     object_name = 'invoice'
-    TYPE_MAPPINGS = {'invoice_id' : 'int', 'client_id' : 'int',
-        'po_number' : 'int', 'discount' : 'float', 'amount' : 'float',
-        'date' : 'datetime', 'amount_outstanding' : 'float', 
-        'paid' : 'float'}
+    
     client_id = models.IntegerField()
     number = models.CharField(max_length=255,blank=True)
     status = models.CharField(max_length=50,choices=STATUS_CHOICES,default='draft')
@@ -144,9 +144,34 @@ class Invoice(api.BaseObject):
             response = api.call_api("invoice.create", {None:self})
         
     
+class Estimate(api.BaseObject):
+    object_name = 'estimate'
+    
+    client_id = models.IntegerField()
+    status = models.CharField(max_length=50,choices=EST_STATUS_CHOICES,default='draft')
+    date = models.DateField(default=date.today(),blank=True)
+    po_number = models.CharField(max_length=255,blank=True)
+    discount = models.DecimalField(blank=True,max_digits=2,decimal_places=2)
+    notes = models.CharField(max_length=255,blank=True,)
+    terms = models.CharField(max_length=255,blank=True)
+    return_uri = models.CharField(max_length=255,blank=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    organization = models.CharField(max_length=100)
+    p_street1 = models.CharField(max_length=255,blank=True)
+    p_street2 = models.CharField(max_length=255,blank=True)
+    p_city = models.CharField(max_length=255,blank=True)
+    p_state = models.CharField(max_length=255,blank=True)
+    p_country = models.CharField(max_length=255,blank=True)
+    p_code = models.CharField(max_length=255,blank=True)
+
+    def save(self):
+        if not self.id:
+            api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+            response = api.call_api("estimate.create", {None:self})
+        
         
 class Client(api.BaseObject):
-    TYPE_MAPPINGS = {'client_id' : 'int'}
     object_name = 'client'
     
     first_name = models.CharField(max_length=50)
@@ -181,7 +206,7 @@ class Client(api.BaseObject):
 
 class Item(api.BaseObject):
     object_name = 'item'
-    TYPE_MAPPINGS = {'item_id' : 'int', 'unit_cost' : 'float','quantity' : 'int', 'inventory' : 'int'}
+    
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     unit_cost = models.DecimalField(max_digits=10,decimal_places=2)
@@ -192,4 +217,28 @@ class Item(api.BaseObject):
         if not self.id:
             api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
             response = api.call_api("item.create", {None:self})
+
+
+class Expenses(api.BaseObject):
+    object_name = 'expenses'
+    
+    staff_id = models.IntegerField()
+    category_id = models.IntegerField()
+    project_id = models.IntegerField(blank=True)
+    client_id = models.IntegerField(blank=True)
+    amount = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+    date = models.DateField()
+    notes = models.CharField(max_length=255,blank=True)
+    status = models.IntegerField(choices=EXP_CHOICES)
+    tax1_name = models.CharField(max_length=255,blank=True)
+    tax1_percent = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+    tax1_amount = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+    tax2_name = models.CharField(max_length=255,blank=True)
+    tax2_percent = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+    tax2_amount = models.DecimalField(max_digits=10,decimal_places=2,blank=True)
+ 
+    def save(self):
+        if not self.id:
+            api.setup(FRESHBOOKS_URL,FRESHBOOKS_TOKEN);
+            response = api.call_api("expenses.create", {None:self})
 
