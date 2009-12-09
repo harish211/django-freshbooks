@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import *
+from django_freshbooks.views import *
 urlpatterns = patterns('',
-    (r'^client/create/', 'freshbooks.django_freshbooks.views.client_create'),
-    (r'^client/added/', 'freshbooks.django_freshbooks.views.client_added'),
+    (r'^client/create/', client_create),
+    (r'^client/added/', client_added),
 )

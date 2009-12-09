@@ -1,4 +1,5 @@
-from freshbooks.django_freshbooks.forms import *
+from django_freshbooks.forms import *
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 
@@ -7,7 +8,7 @@ def client_create(request):
         form = ClientForm(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             obj = form.save()
-            return HttpResponseRedirect('/freshbooks/client/added') # Redirect after POST
+            return HttpResponseRedirect(reverse(client_added)) # Redirect after POST
     
     form = ClientForm() # An unbound form
 
