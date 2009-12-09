@@ -134,7 +134,7 @@ def call_api(method, elems = []):
     request = doc.createElement('request')
     request.setAttribute('method', method)
     for key, value in elems.items():
-        if isinstance(value, FreshbookObject):
+        if isinstance(value, BaseObject):
             request.appendChild(value.to_xml(doc))
         else:
             e = doc.createElement(key)
