@@ -1,6 +1,8 @@
 from django import forms
 from datetime import date
 from django.utils.functional import lazy
+from django_freshbooks.refreshbooks import api
+from django_freshbooks.settings import *
 
 STATUS_CHOICES = (
                  ('sent','sent'),
@@ -38,17 +40,48 @@ FREQ_CHOICES = (
                  ('2 years','2 years'),
                  )
 def get_client_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    client_list = c.client.list()
+    for client in client_list.clients.client:
+        return_list.append([client.client_id,client.organization])
+    return return_list
 def get_project_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    project_list = c.project.list()
+    for project in project_list.projects.project:
+        return_list.append([project.project_id,project.name])
+    return return_list
 def get_task_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    task_list = c.task.list()
+    for task in task_list.tasks.task:
+        return_list.append([task.task_id,task.name])
+    return return_list
 def get_staff_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    staff_list = c.staff.list()
+    for staff in staff_list.staff_members.member:
+        return_list.append([staff.staff_id,staff.first_name])
+    return return_list
 def get_invoice_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    invoice_list = c.invoice.list()
+    for invoice in invoice_list.invoices.invoice:
+        return_list.append([invoice.invoice_id,invoice.number])
+    return return_list
 def get_category_list():
-    return ((1, 'one'),)
+    return_list = list()
+    c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
+    category_list = c.category.list()
+    for category in category_list.categories.category:
+        return_list.append([category.category_id,category.name])
+    return return_list
+
 class CategoryForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/categories/ '''
     category_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
@@ -84,7 +117,7 @@ class ClientForm(forms.Form):
 class EstimateForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/estimates/ '''
     estimate_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(),coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(),coerce=int)
     status = forms.ChoiceField(choices=EST_STATUS_CHOICES,initial='draft')
     date = forms.DateField(initial=date.today(),required=False)
     po_number = forms.CharField(required=False)
@@ -106,10 +139,10 @@ class EstimateForm(forms.Form):
 class ExpenseForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/expenses/ '''
     expense_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    staff_id = forms.TypedChoiceField(choices=lazy(get_staff_list,tuple)(),coerce=int)
-    category_id = forms.TypedChoiceField(choices=lazy(get_category_list,tuple)(),coerce=int)
-    project_id = forms.TypedChoiceField(choices=lazy(get_project_list,tuple)(),required=False, coerce=int)
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(),required=False,coerce=int)
+    staff_id = forms.TypedChoiceField(choices=lazy(get_staff_list,list)(),coerce=int)
+    category_id = forms.TypedChoiceField(choices=lazy(get_category_list,list)(),coerce=int)
+    project_id = forms.TypedChoiceField(choices=lazy(get_project_list,list)(),required=False, coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(),required=False,coerce=int)
     amount = forms.DecimalField(max_digits=10,decimal_places=2,required=False)
     vendor = forms.CharField(required=False)
     date = forms.DateField(required=False)
@@ -125,7 +158,7 @@ class ExpenseForm(forms.Form):
 class InvoiceForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/invoices/ '''
     invoice_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(),coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(),coerce=int)
     number = forms.CharField(required=False)
     status = forms.ChoiceField(choices=STATUS_CHOICES,initial='draft')
     date = forms.DateField(initial=date.today(),required=False)
@@ -157,7 +190,7 @@ class ItemForm(forms.Form):
 class PaymentForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/items/ '''
     payment_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(),coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(),coerce=int)
     invoice_id = forms.TypedChoiceField(choices=get_invoice_list(),required=False, coerce=int)
     date = forms.DateField(required=False)
     amount = forms.DecimalField(decimal_places=2,required=False)
@@ -169,14 +202,14 @@ class ProjectForm(forms.Form):
     project_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
     name = forms.CharField()
     bill_method = forms.CharField()
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(), required=False, coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(), required=False, coerce=int)
     rate = forms.DecimalField(max_digits=10,decimal_places=2, required=False)
     description = forms.CharField(required=False)
 
 class RecurringForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/recurring/ '''
     recurring_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,tuple)(), coerce=int)
+    client_id = forms.TypedChoiceField(choices=lazy(get_client_list,list)(), coerce=int)
     date = forms.DateField(initial=date.today(),required=False)
     po_number = forms.CharField(required=False)
     discount = forms.DecimalField(required=False,max_value=100,decimal_places=2)
@@ -227,10 +260,10 @@ class TaskForm(forms.Form):
     rate = forms.DecimalField(decimal_places=2, required=False)
     description = forms.CharField(required=False)
     
-class TimeEntryForm(forms.Form):
+class TimeentryForm(forms.Form):
     task_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
-    project_id = forms.TypedChoiceField(choices=lazy(get_project_list,tuple)(), coerce=int)
-    task_id = forms.TypedChoiceField(choices=lazy(get_task_list,tuple)(), coerce=int)
+    project_id = forms.TypedChoiceField(choices=lazy(get_project_list,list)(), coerce=int)
+    task_id = forms.TypedChoiceField(choices=lazy(get_task_list,list)(), coerce=int)
     hours = forms.DecimalField(decimal_places=2,required=False)
     date = forms.DateField(required=False)
     notes = forms.CharField(widget=forms.Textarea,required=False)
