@@ -1,4 +1,4 @@
-from django_freshbooks.forms import *
+from django_freshbooks import forms 
 from django_freshbooks.settings import *
 from django_freshbooks.refreshbooks import api
 from django.core.urlresolvers import reverse
@@ -22,33 +22,26 @@ def auth_freshbooks(type='token'):
     return c
 
 
-def category_create(request):
+def form_create(request,form_type):
+    '''
+    form_type must be a simple type with no relationships
+    Category, Client, Item, Staff, Task
+    '''
+    form_class = form_type.capitalize() + 'Form'
     if request.method == 'POST': # If the form has been submitted...
-        form = CategoryForm(request.POST) # A form bound to the POST data
+        form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             fb = auth_freshbooks()
-            fb.category.create(category=form.cleaned_data)
-            return HttpResponseRedirect(reverse(category_added)) # Redirect after POST
+            fb_kwargs = {'category': form.cleaned_data}
+            func_type = getattr(fb, form_type)
+            func_type.create(**fb_kwargs)
+            return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
     
-    form = CategoryForm() # An unbound form
+    form = getattr(forms,form_class)()# An unbound form
 
     return render_to_response('form.html', { 'form': form, })
 
-def category_added(request):
-    return render_to_response('added.html', {'type':'category'})
+def form_added(request,form_type):
+    return render_to_response('added.html', {'type':form_type})
 
-def client_create(request):
-    if request.method == 'POST': # If the form has been submitted...
-        form = ClientForm(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
-            fb = auth_freshbooks()
-            fb.client.create(form.cleaned_data)
-            return HttpResponseRedirect(reverse(client_added)) # Redirect after POST
-    
-    form = ClientForm() # An unbound form
-
-    return render_to_response('form.html', { 'form': form, })
-
-def client_added(request):
-    return render_to_response('added.html', {'type':'client'})
 
