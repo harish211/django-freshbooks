@@ -40,6 +40,7 @@ FREQ_CHOICES = (
                  ('2 years','2 years'),
                  )
 def get_client_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     client_list = c.client.list()
@@ -47,6 +48,7 @@ def get_client_list():
         return_list.append([client.client_id,client.organization])
     return return_list
 def get_project_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     project_list = c.project.list()
@@ -54,6 +56,7 @@ def get_project_list():
         return_list.append([project.project_id,project.name])
     return return_list
 def get_task_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     task_list = c.task.list()
@@ -61,6 +64,7 @@ def get_task_list():
         return_list.append([task.task_id,task.name])
     return return_list
 def get_staff_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     staff_list = c.staff.list()
@@ -68,6 +72,7 @@ def get_staff_list():
         return_list.append([staff.staff_id,staff.first_name])
     return return_list
 def get_invoice_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     invoice_list = c.invoice.list()
@@ -75,6 +80,7 @@ def get_invoice_list():
         return_list.append([invoice.invoice_id,invoice.number])
     return return_list
 def get_category_list():
+    return list([['1','1'],["2","2"]])
     return_list = list()
     c = api.TokenClient(FRESHBOOKS_URL,FRESHBOOKS_TOKEN)
     category_list = c.category.list()
