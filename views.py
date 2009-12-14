@@ -37,7 +37,7 @@ def form_create(request,form_type):
         form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             fb = auth_freshbooks()
-            fb_kwargs = {'category': form.cleaned_data}
+            fb_kwargs = {str(form_type): form.cleaned_data}
             func_type = getattr(fb, form_type)
             func_type.create(**fb_kwargs)
             return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
