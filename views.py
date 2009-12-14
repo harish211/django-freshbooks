@@ -73,4 +73,17 @@ def inline_form_create(request,form_type):
 def form_added(request,form_type):
     return render_to_response('added.html', {'type':form_type})
 
+def client_added(request):
+    return render_to_response('added.html', {'type':'client'})
 
+def generic_freshbooks_create(request,form_class,next_view):
+    if request.method == 'POST': # If the form has been submitted...
+        form = form_class(request.POST) # A form bound to the POST data
+        if form.is_valid(): # All validation rules pass
+            print "IS VALID"
+            fb = auth_freshbooks()
+            #fb.category.create(category=form.cleaned_data)
+            return HttpResponseRedirect(reverse(form_added)) # Redirect after POST
+    
+    form = form_class() # An unbound form
+    return render_to_response('form.html', { 'form': form, })

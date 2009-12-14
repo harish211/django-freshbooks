@@ -1,3 +1,29 @@
--Figure out a DRY way to show forms in the view
 -Add other api calls for creating
 -Add other api calls for get, update, delete and list
+-Move the save methods to the parent class
+-Prevent tabels from being created on syncdb
+
+Serializing Invoices (to be generified):
+
+Invoice.create
+
+Create an XML request document
+Set the 'method' attribute
+Loop over all fields of the object being serialized
+	if field is an FK 
+		ignore it	
+	if field is a genericReverseFk
+		get the name of the Model it references 
+		add an element to the doc named after the field name (ie we should name reverse FKs appropriately)
+			Loop over all objects in the reverseFK
+				call serialize on each one and append the xml to the request doc
+	else
+		if field value is None:
+			skip it
+		if field name is id:
+			add element named after model (ie invoice_id)
+		else
+			add an element named after the field name
+		
+			
+	
