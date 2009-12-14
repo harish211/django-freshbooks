@@ -1,8 +1,20 @@
 import unittest
-import mock
+from mock import *
 from django.http import HttpResponseRedirect
 from django_freshbooks.forms import *
 from django_freshbooks.views import *
+from django_freshbooks import views
+from django_freshbooks.refreshbooks import api
+
+#For info on the mock library: http://www.voidspace.org.uk/python/mock/
+
+mock_api = Mock()
+mock_api.client = Mock(spec=["create","invalid"])
+def mock_auth(x=""):
+    print "CALLED mock AUTH"
+    return mock_api
+
+views.auth_freshbooks = mock_auth
 
 MINIMAL_CLIENT_DATA = {
                         "client_id":"",
@@ -19,19 +31,18 @@ class FormsTestCase(unittest.TestCase):
             
             
 class ViewsTestCase(unittest.TestCase):
-    request = mock.Mock()
-
-    def setUp(self):
-        self.request = mock.Mock()
+    request = Mock()
         
-    def test_get_generic_create_view(self):
+    def test_get_form_create(self):
         self.request.method = "GET"
-        response = client_create(self.request,ClientForm,client_added)
+        response = form_create(self.request,"client")
         assert response.content.find("<form") >=0, "Should have found a valid form"
         
-    def test_post_generic_create_view(self):
+    def test_post_form_create(self):
         self.request.method = "POST"
         self.request.POST = MINIMAL_CLIENT_DATA
-        response = generic_freshbooks_create(self.request,ClientForm,client_added)
-        
+        response = form_create(self.request,"client")
         assert isinstance(response,HttpResponseRedirect),"Should be redirecting to *added"
+        assert mock_api.client.create.called # asserts this method was called
+            
+        
