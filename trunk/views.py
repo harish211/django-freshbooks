@@ -8,6 +8,7 @@ from django.forms.formsets import formset_factory
 from django.http import Http404
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def auth_freshbooks(type='token'):
     if type == 'oauth':
@@ -83,8 +84,13 @@ def inline_form_create(request,form_type):
         form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
         formset = LineFormSet(request.POST)
         if form.is_valid(): # All validation rules pass
+            form.cleaned_data['lines']=list()
+            for f in formset.forms:
+                if f.is_valid():
+                    form.cleaned_data['lines'].append(('line',f.cleaned_data))
             fb = auth_freshbooks()
-            fb_kwargs = {'category': form.cleaned_data}
+            fb_kwargs = {str(form_type): form.cleaned_data}
+            logging.debug(fb_kwargs)
             func_type = getattr(fb, form_type)
             func_type.create(**fb_kwargs)
             return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
