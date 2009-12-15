@@ -25,13 +25,6 @@ def auth_freshbooks(type='token'):
                             )
     return c
 
-#def compound_form_create(request,form_type):
-#    form_class = form_type.capitalize + 'Form'
-#    if request.method == POST:
-#        form = form_class(request.POST)
-#        if form.is_valid()
-            
-
 
 def form_create(request,form_type):
     '''
@@ -45,28 +38,37 @@ def form_create(request,form_type):
     form_class = form_type.capitalize() + 'Form'
     if request.method == 'POST': # If the form has been submitted...
         form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
+        formsets = __instantiate_formsets(form.formset_classes,request.POST)
+        #TODO loop over and validate formsets
+        #TODO remove remove 'and False' to enable FB API again
+        if form.is_valid() and False: # All validation rules pass
             fb = auth_freshbooks()
             fb_kwargs = {str(form_type): form.cleaned_data}
             func_type = getattr(fb, form_type)
             # We could check here if id is set to determine create or updated
             func_type.create(**fb_kwargs)
             return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
-    
-    # DISPLAY FORM
-    form = getattr(forms,form_class)()# An unbound form
-    
+    else:
+        form = getattr(forms,form_class)()# An unbound form
+        formsets = __instantiate_formsets(form.formset_classes)
     # We should be able to abstract this a bit for when we bind data
+    
+    
+    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
+
+def __instantiate_formsets(formset_classes,data={}):
     try:
         formsets = list()
-        for attr_name,formset_class in form.formset_classes.items():
-            formset = formset_class()
+        for attr_name,formset_class in formset_classes.items():
+            if len(data) > 0:
+                formset = formset_class(data)
+            else:
+                formset = formset_class()
             formset.name = attr_name
             formsets.append(formset)
     except AttributeError:
         pass
-    
-    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
+    return formsets
 
 def inline_form_create(request,form_type):
     '''
