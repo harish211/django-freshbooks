@@ -22,6 +22,7 @@
 				
 				{{ formset.non_form_errors }}
 				<table id="formset" class="form">
+				{{ formset.management_form }}
 				{% for form in formset.forms %}
 				  {% if forloop.first %}
 				  <thead><tr>
