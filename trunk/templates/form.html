@@ -15,8 +15,11 @@
 		<form method="post" action="." >
 			<table>
 			{{ form }}
+			{{ form.lines }}
+			
 			 {% if formset %}
 			</table>
+				
 				{{ formset.non_form_errors }}
 				<table id="formset" class="form">
 				{% for form in formset.forms %}
@@ -44,6 +47,12 @@
 				 {% endfor %}
 				{% endif %}
 			</table>
+			{% for formset in formsets %}
+				<h2>{{ formset.name }}</h2>	
+				<table>
+				{{ formset }}
+				</table>
+			{% endfor %}
 			<input type="submit" value="Submit" />
 		</form>
 	</body>

@@ -120,6 +120,16 @@ class ClientForm(forms.Form):
     s_country = forms.CharField(required=False)
     s_code = forms.CharField(required=False)
     
+class LineForm(forms.Form):
+    name = forms.CharField(required=False)
+    description = forms.CharField(required=False)
+    unit_cost = forms.DecimalField(decimal_places=2)
+    quantity = forms.IntegerField(required=False)
+    tax1_name = forms.CharField(required=False)
+    tax2_name = forms.CharField(required=False)
+    tax1_percent = forms.DecimalField(decimal_places=2,required=False)
+    tax2_percent = forms.DecimalField(decimal_places=2,required=False)
+    
 class EstimateForm(forms.Form):
     ''' http://developers.freshbooks.com/api/view/estimates/ '''
     estimate_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
@@ -182,6 +192,7 @@ class InvoiceForm(forms.Form):
     p_state = forms.CharField(required=False)
     p_country = forms.CharField(required=False)
     p_code = forms.CharField(required=False)
+    formset_classes = {'Lines':forms.formsets.formset_factory(LineForm), }
     # line will be a seperate formset
 
 class ItemForm(forms.Form):
@@ -274,12 +285,3 @@ class TimeentryForm(forms.Form):
     date = forms.DateField(required=False)
     notes = forms.CharField(widget=forms.Textarea,required=False)
 
-class LineForm(forms.Form):
-    name = forms.CharField(required=False)
-    description = forms.CharField(required=False)
-    unit_cost = forms.DecimalField(decimal_places=2)
-    quantity = forms.IntegerField(required=False)
-    tax1_name = forms.CharField(required=False)
-    tax2_name = forms.CharField(required=False)
-    tax1_percent = forms.DecimalField(decimal_places=2,required=False)
-    tax2_percent = forms.DecimalField(decimal_places=2,required=False)
