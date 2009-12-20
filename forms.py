@@ -173,7 +173,7 @@ class InvoiceForm(forms.Form):
     status = forms.ChoiceField(choices=STATUS_CHOICES,initial='draft')
     date = forms.DateField(initial=date.today(),required=False)
     po_number = forms.CharField(required=False)
-    discount = forms.DecimalField(required=False,max_value=100,decimal_places=2)
+    discount = forms.DecimalField(required=False,max_value=100,decimal_places=2,initial=0)
     notes = forms.CharField(widget=forms.Textarea,required=False)
     terms = forms.CharField(required=False)
     return_uri = forms.URLField(required=False)
