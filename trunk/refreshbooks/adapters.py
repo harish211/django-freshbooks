@@ -27,7 +27,9 @@ def encode_as_simple(name, value):
         >>> element.text == '5'
         True
     """
-    value=str(value)
+    val_type = type(value).__name__
+    if val_type != 'dict' and val_type !='list' and val_type != 'unicode':
+        value = str(value)
     if isinstance(value, objectify.ObjectifiedDataElement):
         return encode_as_simple(name, unicode(value))
     return elements.field(name, value)

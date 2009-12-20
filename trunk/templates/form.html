@@ -36,12 +36,6 @@
 				 {% endfor %}
 				{% endif %}
 			</table>
-			{% for formset in formsets %}
-				<h2>{{ formset.name }}</h2>	
-				<table>
-				{{ formset }}
-				</table>
-			{% endfor %}
 			<input type="submit" value="Submit" />
 		</form>
 {% endblock %}
