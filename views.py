@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.forms.formsets import formset_factory
 from django.http import Http404
+from lxml import objectify
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -25,37 +26,110 @@ def auth_freshbooks(type='token'):
                             FRESHBOOKS_TOKEN
                             )
     return c
-
-
-def form_create(request,form_type):
+def form(request,form_type,object_id=None):
     '''
     form_type must be a simple type with no line items
     Category, Client, Expense, Item, Payment, Project, Staff, Task, Time Entry
     '''
-    logging.debug("form_type is"+form_type)
-    if form_type not in ('invoice','category','client','expense','item','payment','project','staff','task','timeentry'):
+    if form_type in ('category','client','expense','item','payment','project','staff','task','time_entry'):
+        pass
+        #LineFormSet = list
+    elif form_type in ('estimate','invoice','recurring'):
+        LineFormSet = formset_factory(forms.LineForm, extra=2)
+    else:
         raise Http404
-    
     form_class = form_type.capitalize() + 'Form'
     if request.method == 'POST': # If the form has been submitted...
         form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
-        formsets = __instantiate_formsets(form.formset_classes,request.POST)
-        #TODO loop over and validate formsets
-        #TODO remove remove 'and False' to enable FB API again
-        if form.is_valid() and False: # All validation rules pass
+        #formsets = LineFormSet(request.POST)
+        if form.is_valid(): # All validation rules pass
             fb = auth_freshbooks()
             fb_kwargs = {str(form_type): form.cleaned_data}
             func_type = getattr(fb, form_type)
             # We could check here if id is set to determine create or updated
-            func_type.create(**fb_kwargs)
+            if object_id:
+                func_type.update(**fb_kwargs)
+            else:
+                func_type.create(**fb_kwargs)
             return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
     else:
-        form = getattr(forms,form_class)()# An unbound form
-        formsets = __instantiate_formsets(form.formset_classes)
-    # We should be able to abstract this a bit for when we bind data
+        if object_id:
+            fb = auth_freshbooks()
+            E = objectify.E
+            fb_type = E.root(E.id(object_id),)
+            func_type = getattr(fb, form_type)
+            fb_kwargs = {str(form_type)+'_id': fb_type.id}
+            fb_type_response = func_type.get(**fb_kwargs)
+            form = getattr(forms,form_class)(getattr(fb_type_response,form_type).__dict__)# a bound form
+            #formsets = LineFormSet()
+        else:
+            form = getattr(forms,form_class)() # an unbound form
+            #formsets = LineFormSet()
     
-    
-    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
+    return render_to_response('form.html', { 'form': form, })#'formsets':formsets})
+
+def list(request,type):
+    fb_map = {
+              'category':
+              {'plural':'categories',
+               'description':'name',
+               },
+              'item':
+              {'plural':'items',
+               'description':'name',
+               },
+              'client':
+              {'plural':'clients',
+               'description':'organization',
+               },
+              'estimate':
+              {'plural':'estimates',
+               'description':'organization',
+               },
+              'expense':
+              {'plural':'expenses',
+               'description':'amount',
+               },
+              'invoice':
+              {'plural':'invoices',
+               'description':'organization',
+               },
+              'payment':
+              {'plural':'payments',
+               'description':'amount',
+               },
+              'project':
+              {'plural':'projects',
+               'description':'name',
+               },
+              'recurring':
+              {'plural':'recurrings',
+               'description':'organization',
+               },
+              'staff':
+              {'plural':'staff_members',
+               'description':'first_name',
+               },
+              'task':
+              {'plural':'tasks',
+               'description':'name',
+               },
+              'time_entry':
+              {'plural':'time_entries',
+               'description':'hours',
+               },
+              }
+    fb = auth_freshbooks()
+    result = []
+    type_list = getattr(fb,type).list()
+    if type == 'staff':
+        xml_type = 'member'
+    else:
+        xml_type = type
+    for element in getattr(getattr(type_list,fb_map[type]['plural']),xml_type):
+        result.append({'id':getattr(element,type+'_id'),'description':getattr(element,fb_map[type]['description'])})
+    return render_to_response('list.html', {'list':result, 'type':type})
+
 
 def __instantiate_formsets(formset_classes,data={}):
     try:
@@ -90,7 +164,6 @@ def inline_form_create(request,form_type):
                     form.cleaned_data['lines'].append(('line',f.cleaned_data))
             fb = auth_freshbooks()
             fb_kwargs = {str(form_type): form.cleaned_data}
-            logging.debug(fb_kwargs)
             func_type = getattr(fb, form_type)
             func_type.create(**fb_kwargs)
             return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
@@ -105,3 +178,4 @@ def form_added(request,form_type):
 
 def client_added(request):
     return render_to_response('added.html', {'type':'client'})
+
