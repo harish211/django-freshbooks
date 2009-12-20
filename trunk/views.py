@@ -27,10 +27,6 @@ def auth_freshbooks(type='token'):
                             )
     return c
 def form(request,form_type,object_id=None):
-    '''
-    form_type must be a simple type with no line items
-    Category, Client, Expense, Item, Payment, Project, Staff, Task, Time Entry
-    '''
     if form_type in ('category','client','expense','item','payment','project','staff','task','time_entry'):
         pass
         #LineFormSet = list
@@ -41,8 +37,11 @@ def form(request,form_type,object_id=None):
     form_class = form_type.capitalize() + 'Form'
     if request.method == 'POST': # If the form has been submitted...
         form = getattr(forms,form_class)(request.POST) # A form bound to the POST data
-        #formsets = LineFormSet(request.POST)
-        if form.is_valid(): # All validation rules pass
+        formsets = __instantiate_formsets(form.formset_classes, request.POST)
+        # filter will return formsets that fail validation, only continue if the returned list is empty
+        if form.is_valid() and not filter(lambda fset: not fset.is_valid(),formsets):
+            import logging
+            logging.debug("VALID")
             fb = auth_freshbooks()
             fb_kwargs = {str(form_type): form.cleaned_data}
             func_type = getattr(fb, form_type)
@@ -65,8 +64,9 @@ def form(request,form_type,object_id=None):
         else:
             form = getattr(forms,form_class)() # an unbound form
             #formsets = LineFormSet()
+        formsets = __instantiate_formsets(form.formset_classes, request.POST)
     
-    return render_to_response('form.html', { 'form': form, })#'formsets':formsets})
+    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
 
 def list(request,type):
     fb_map = {
@@ -133,7 +133,7 @@ def list(request,type):
 
 def __instantiate_formsets(formset_classes,data={}):
     try:
-        formsets = list()
+        formsets = []
         for attr_name,formset_class in formset_classes.items():
             if len(data) > 0:
                 formset = formset_class(data)
