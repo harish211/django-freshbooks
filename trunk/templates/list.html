@@ -1,0 +1,7 @@
+{% include "base.html" %}
+{% block content %}
+	<h1>{{ type }}</h1>
+		{% for item in list %}
+			<a href="/freshbooks/{{ type }}/{{ item.id }}/">{{ item.description }}</a><br />
+		{% endfor %}
+{% endblock %}

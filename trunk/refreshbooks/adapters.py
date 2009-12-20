@@ -1,4 +1,5 @@
 from lxml import etree, objectify
+import logging
 
 from django_freshbooks.refreshbooks import elements, client
 
@@ -26,6 +27,7 @@ def encode_as_simple(name, value):
         >>> element.text == '5'
         True
     """
+    value=str(value)
     if isinstance(value, objectify.ObjectifiedDataElement):
         return encode_as_simple(name, unicode(value))
     return elements.field(name, value)
@@ -62,10 +64,10 @@ def encode_parameter(name, value):
     except AttributeError:
         try:
             return encode_as_dict(name, **value)
-        except TypeError:
+        except TypeError, msg:
             try:
                 return encode_as_simple(name, value)
-            except TypeError:
+            except TypeError, msg:
                 return encode_as_list_of_dicts(name, *value)
 
 def xml_request(method, **params):
