@@ -27,6 +27,12 @@ def auth_freshbooks(type='token'):
                             )
     return c
 
+def remove_blank(form_data):
+    for k,v in form_data.items():
+        if v == '' or not v:
+            del form_data[k]
+    return form_data
+
 def form_justin(request,form_type,object_id=None):
     
     if form_type in ('category','client','expense','item','payment','project','staff','task','time_entry'):
@@ -45,9 +51,9 @@ def form_justin(request,form_type,object_id=None):
                 form.cleaned_data['lines']=[]
                 for f in formset.forms:
                     if f.is_valid():
-                        form.cleaned_data['lines'].append(('line',f.cleaned_data))
+                        form.cleaned_data['lines'].append(('line',remove_blank(f.cleaned_data)))
             fb = auth_freshbooks()
-            fb_kwargs = {str(form_type): form.cleaned_data}
+            fb_kwargs = {str(form_type): remove_blank(form.cleaned_data)}
             func_type = getattr(fb, form_type)
             try:
                 # We could check here if id is set to determine create or updated
@@ -113,7 +119,7 @@ def form_robin(request,form_type,object_id=None):
             #formsets = LineFormSet()
         formsets = __instantiate_formsets(form.formset_classes, request.POST)
     
-    return render_to_response('form.html', { 'form': form, 'formsets':formsets}
+    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
 
 def list(request,type):
     fb_map = {
