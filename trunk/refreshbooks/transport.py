@@ -63,7 +63,8 @@ class HttpTransport(object):
     
     def __call__(self, entity):
         client = httplib2.Http()
-        
+        import logging
+        logging.debug("Trying to connect to "+self.url)
         resp, content = client.request(
             self.url,
             'POST',
