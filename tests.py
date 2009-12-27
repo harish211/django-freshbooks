@@ -33,16 +33,16 @@ class FormsTestCase(unittest.TestCase):
 class ViewsTestCase(unittest.TestCase):
     request = Mock()
         
-    def test_get_form_create(self):
-        self.request.method = "GET"
-        response = form_create(self.request,"client")
-        assert response.content.find("<form") >=0, "Should have found a valid form"
-        
-    def test_post_form_create(self):
-        self.request.method = "POST"
-        self.request.POST = MINIMAL_CLIENT_DATA
-        response = form_create(self.request,"client")
-        assert isinstance(response,HttpResponseRedirect),"Should be redirecting to *added"
-        assert mock_api.client.create.called # asserts this method was called
+#    def test_get_form_create(self):
+#        self.request.method = "GET"
+#        response = form_create(self.request,"client")
+#        assert response.content.find("<form") >=0, "Should have found a valid form"
+#        
+#    def test_post_form_create(self):
+#        self.request.method = "POST"
+#        self.request.POST = MINIMAL_CLIENT_DATA
+#        response = form_create(self.request,"client")
+#        assert isinstance(response,HttpResponseRedirect),"Should be redirecting to *added"
+#        assert mock_api.client.create.called # asserts this method was called
             
         

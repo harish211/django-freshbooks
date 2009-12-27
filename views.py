@@ -99,11 +99,11 @@ def form_robin(request,form_type,object_id=None):
             fb_kwargs = {str(form_type): form.cleaned_data}
             func_type = getattr(fb, form_type)
             # We could check here if id is set to determine create or updated
-            if object_id:
-                func_type.update(**fb_kwargs)
-            else:
-                func_type.create(**fb_kwargs)
-            return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
+#            if object_id:
+#                func_type.update(**fb_kwargs)
+#            else:
+#                func_type.create(**fb_kwargs)
+#            return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
     else:
         if object_id:
             fb = auth_freshbooks()
@@ -119,7 +119,7 @@ def form_robin(request,form_type,object_id=None):
             #formsets = LineFormSet()
         formsets = __instantiate_formsets(form.formset_classes, request.POST)
     
-    return render_to_response('form.html', { 'form': form, 'formsets':formsets})
+    return render_to_response('robinform.html', { 'form': form, 'formsets':formsets})
 
 def list(request,type):
     fb_map = {
