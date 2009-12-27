@@ -50,6 +50,8 @@ def form_justin(request,form_type,object_id=None):
             if formset and formset.is_valid():
                 form.cleaned_data['lines']=[]
                 for f in formset.forms:
+                    # Won't this cause forms to quietly ignore invalid forms in their formsets
+                    # while it posts the valid ones>
                     if f.is_valid():
                         form.cleaned_data['lines'].append(('line',remove_blank(f.cleaned_data)))
             fb = auth_freshbooks()
@@ -93,17 +95,24 @@ def form_robin(request,form_type,object_id=None):
         formsets = __instantiate_formsets(form.formset_classes, request.POST)
         # filter will return formsets that fail validation, only continue if the returned list is empty
         if form.is_valid() and not filter(lambda fset: not fset.is_valid(),formsets):
+            fb_data = form.cleaned_data
+            for formset in formsets:
+                formset_group_name = formset.name.lower()+"s"
+                fb_data[formset_group_name] = []
+                for form in formset.forms:
+                    fb_data[formset_group_name].append((formset.name.lower(),remove_blank(form.cleaned_data)))
+                    
             import logging
-            logging.debug("VALID")
+            logging.debug(fb_data)
             fb = auth_freshbooks()
-            fb_kwargs = {str(form_type): form.cleaned_data}
+            fb_kwargs = {str(form_type): fb_data}
             func_type = getattr(fb, form_type)
             # We could check here if id is set to determine create or updated
-#            if object_id:
-#                func_type.update(**fb_kwargs)
-#            else:
-#                func_type.create(**fb_kwargs)
-#            return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
+            if object_id:
+                func_type.update(**fb_kwargs)
+            else:
+                func_type.create(**fb_kwargs)
+            return HttpResponseRedirect(reverse('form_added',kwargs={'form_type':form_type})) # Redirect after POST
     else:
         if object_id:
             fb = auth_freshbooks()
