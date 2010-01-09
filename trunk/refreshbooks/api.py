@@ -51,8 +51,8 @@ def AuthorizingClient(domain, auth, request_encoder, response_decoder):
 def TokenClient(
     domain,
     token,
-    request_encoder=default_request_encoder,
-    response_decoder=default_response_decoder
+    request_encoder=logging_request_encoder,
+    response_decoder=logging_response_decoder
 ):
     """Creates a Freshbooks client for a freshbooks domain, using
     token-based auth.
